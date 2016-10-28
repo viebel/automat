@@ -51,7 +51,16 @@
     fsm/kleene))
 
 (defn range
-  "Returns an automaton which matches any input within the inclusive range of [upper, lower]."
+  "Returns an automaton which matches any input within the inclusive range of [upper, lower].
+```klipse
+  (def r10-19 (a/compile (a/range 10 19)))
+  (a/advance r10-19 nil 11)
+```
+
+```klipse
+  (a/advance r10-19 nil 121 :error)
+```
+"
   [lower upper]
   (if (clj/and (number? lower) (number? upper))
     (apply fsm/automaton (clj/range lower (inc upper)))
@@ -64,7 +73,11 @@
 ;;;
 
 (defn matching-inputs
-  "Returns a lazy sequence of input sequences which the automaton will match."
+  "Returns a lazy sequence of input sequences which the automaton will match.
+```klipse
+  (take 10 (matching-inputs [1 2 3]))
+```
+  "
   [fsm]
   (fsm/matching-inputs (core/parse-automata fsm)))
 
@@ -116,7 +129,24 @@
   "Advances a single position in the automaton.  Takes a compiled `fsm`, a `state` which is either an initial reduce
    value or a CompiledAutomatonState previously returned by `advance`, and an input.
 
-   If a `reject-value` is specified, it will be returned if an invalid input is given.  Otherwise an IllegalArgumentException is thrown."
+   If a `reject-value` is specified, it will be returned if an invalid input is given.  Otherwise an IllegalArgumentException is thrown.
+
+```klipse
+  (def auto (a/compile [1 2 3]))
+  (a/advance auto nil 1)
+```
+```klipse
+  (a/advance auto nil 19)
+```
+```klipse
+  (a/advance auto nil 19 :error)
+```
+
+```klipse
+(def adv (partial a/advance auto))
+(-> nil (adv 1) (adv 2) (adv 3))
+```
+"
   ([fsm state input]
      (let [state' (advance fsm state input ::reject)]
        (if (is-identical? ::reject state')
